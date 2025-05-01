@@ -1,0 +1,60 @@
+sudo apt update
+sudo apt install -y apache2 mysql-server php php-mysql \
+  php-gd php-curl php-apcu php-cli php-mbstring \
+  php-soap php-intl php-zip git unzip
+
+
+
+cd /opt
+
+sudo git clone https://github.com/phacility/arcanist.git
+sudo git clone https://github.com/phacility/libphutil.git
+
+
+sudo mysql -u root -p
+
+
+CREATE DATABASE phabricator;
+CREATE USER 'phab_user'@'localhost' IDENTIFIED BY 'password@123';
+GRANT ALL PRIVILEGES ON `phabricator\_%`.* TO 'phab_user'@'localhost';
+GRANT ALL PRIVILEGES ON *.* TO 'phab_user'@'localhost';
+FLUSH PRIVILEGES;
+exit
+
+cd /opt/phabricator
+sudo ./bin/config set mysql.host localhost
+sudo ./bin/config set mysql.user username
+sudo ./bin/config set mysql.pass yourpassword
+sudo ./bin/storage upgrade --user user --password yourpassword
+sudo ./bin/config set phabricator.base-uri 'http://domain or ip /'
+
+
+Virutalhost :
+
+
+<VirtualHost *:80>
+  ServerName yourdomain.com
+  DocumentRoot /opt/phabricator/webroot
+
+  RewriteEngine on
+  RewriteRule ^/(.*)$          /index.php?__path__=/$1  [B,L,QSA]
+
+  <Directory "/opt/phabricator/webroot">
+    Require all granted
+  </Directory>
+</VirtualHost>
+
+
+sudo a2ensite phabricator.conf
+sudo a2enmod rewrite
+sudo systemctl restart apache2
+
+
+
+password recover :
+
+sudo ./bin/auth recover linuxnethelp
+
+
+
+
